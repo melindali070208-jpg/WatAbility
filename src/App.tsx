@@ -225,6 +225,14 @@ function App() {
 
       <header className="header">
         <h1>WatAbility</h1>
+          <div className="header-center">
+          <div className="header-center-title">
+            Your campus. Your route.
+          </div>
+          <div className="header-center-subtitle">
+            Exploring accessible navigation at Waterloo.
+          </div>
+        </div>
         <span>Accessible Campus Navigation</span>
       </header>
 
