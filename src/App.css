@@ -1261,3 +1261,62 @@ textarea {
 .app {
   background-color: var(--wat-cream);
 }
+
+/* Find Accessible Route button */
+
+.sidebar .find-route-button {
+  background-color: #ffd6f9;
+  color: #403148;
+  border: 1px solid #BDA4C9;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.sidebar .find-route-button:hover:not(:disabled) {
+  background-color: #ffd6f9;
+}
+
+/* Save Pathway — soft lavender */
+.path-editor .path-save-button {
+  background: #ffd6f9;
+  color: #41334C;
+  border: 1px solid #CBB3D7;
+}
+
+/* Undo — soft sage */
+.path-editor .path-undo-button {
+  background: #DDE7D5;
+  color: #36513B;
+  border: 1px solid #C8D8BE;
+}
+
+/* Clear — pastel peach */
+.path-editor .path-clear-button {
+  background: #DDE7D5;
+  color: #68433D;
+  border: 1px solid #E8C9C0;
+}
+
+/* Copy coordinates — powder blue */
+.path-editor .path-copy-button {
+  background: #DDE7D5;
+  color: #3D5368;
+  border: 1px solid #CBD8E5;
+}
+
+/* Soft hover effects */
+.path-editor .path-save-button:hover:not(:disabled) {
+  background: #ffd6f9;
+}
+
+.path-editor .path-undo-button:hover:not(:disabled) {
+  background: #DDE7D5;
+}
+
+.path-editor .path-clear-button:hover:not(:disabled) {
+  background: #DDE7D5;
+}
+
+.path-editor .path-copy-button:hover:not(:disabled) {
+  background: #DDE7D5;
+}

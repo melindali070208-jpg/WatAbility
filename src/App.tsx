@@ -329,6 +329,7 @@ function App() {
 
           <button
             type="button"
+            className="find-route-button"
             onClick={findRoute}
             disabled={isLoading}
           >
@@ -531,6 +532,7 @@ function App() {
 
             <button
               type="button"
+              className="path-save-button"
               onClick={savePathway}
               disabled={pathPoints.length < 2}
             >
@@ -544,6 +546,7 @@ function App() {
               <button
                 type="button"
                 disabled={pathPoints.length === 0}
+                className="path-undo-button"
                 onClick={() =>
                   setPathPoints((points) =>
                     points.slice(0, -1)
@@ -555,6 +558,7 @@ function App() {
 
               <button
                 type="button"
+                className="path-clear-button"
                 onClick={() => setPathPoints([])}
               >
                 Clear
@@ -567,6 +571,7 @@ function App() {
             <button
               type="button"
               disabled={pathPoints.length < 2}
+              className="path-copy-button"
               onClick={async () => {
                 try {
                   await navigator.clipboard.writeText(
