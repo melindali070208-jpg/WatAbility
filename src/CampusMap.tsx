@@ -305,7 +305,7 @@ function CampusMap({
 
     buildings.forEach((building) => {
       new maplibregl.Marker({
-        color: "#0f766e"
+        color: "#d06fc2"
       })
         .setLngLat(building.coordinates)
         .setPopup(
