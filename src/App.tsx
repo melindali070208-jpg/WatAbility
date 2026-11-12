@@ -1,18 +1,19 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import CampusMap from "./CampusMap";
 import { buildings } from "./buildings";
 import type { RouteResult } from "./routes";
 import { findWalkingRoutes } from "./pedestrianRouting";
 import { calculateRouteStats } from "./routeStats";
 
+import { getInsertIndex } from "./routeStops";
+
 import {
-  loadSavedPaths,
-  storeSavedPaths,
-  type SavedPath,
-  type PathType,
-  type StairsStatus
-} from "./savedPaths";
+  loadSavedRoutes,
+  storeSavedRoutes,
+  type SavedRoute,
+  type Coordinates
+} from "./savedRoutes";
 
 import "./App.css";
 
@@ -49,32 +50,41 @@ function App() {
     : null;
 
   // ========================================
-  // PATHWAY EDITOR
+  // ROUTE EDITOR
   // ========================================
 
-  const [editingPaths, setEditingPaths] =
-    useState(false);
+  const [editingRoute, setEditingRoute] = useState(false);
 
-  const [pathPoints, setPathPoints] =
-    useState<[number, number][]>([]);
+  const [waypoints, setWaypoints] =
+    useState<Coordinates[]>([]);
 
-  const [pathName, setPathName] = useState("");
+  const [routeName, setRouteName] = useState("");
 
-  const [savedPaths, setSavedPaths] =
-    useState<SavedPath[]>(loadSavedPaths);
+  const [activeRouteId, setActiveRouteId] =
+    useState<string | null>(null);
 
-  const [pathType, setPathType] =
-    useState<PathType>("sidewalk");
+    // Earlier stop lists, so Undo can step back through edits
+  const [history, setHistory] =
+    useState<Coordinates[][]>([]);
 
-  const [stairsStatus, setStairsStatus] =
-    useState<StairsStatus>("unknown");
+  const [savedRoutes, setSavedRoutes] =
+    useState<SavedRoute[]>(loadSavedRoutes);
 
   // ========================================
   // FIND AUTOMATIC WALKING ROUTE
   // ========================================
 
-  async function findRoute() {
-    if (!start || !destination) {
+  // Latest request wins, so fast edits never show stale routes
+  const requestId = useRef(0);
+
+  async function findRoute(
+    stops: Coordinates[] = waypoints,
+    quiet = false,
+    from = start,
+    to = destination,
+    avoid = avoidStairs
+  ) {
+    if (!from || !to) {
       setMessage(
         "Please select a starting building and destination."
       );
@@ -83,58 +93,71 @@ function App() {
       return;
     }
 
-    if (start === destination) {
+    if (from === to) {
       setMessage("Please select two different buildings.");
       setRoute(null);
       setRouteOptions([]);
       return;
     }
 
-    setMessage("Finding walking routes...");
-    setRoute(null);
-    setRouteOptions([]);
-    setSelectedRouteIndex(0);
+    const id = ++requestId.current;
+
+    setMessage(
+      quiet ? "Updating route..." : "Finding walking routes..."
+    );
+
+    // While editing stops, keep the old line visible until the
+    // new one arrives so the map does not flicker
+    if (!quiet) {
+      setRoute(null);
+      setRouteOptions([]);
+      setSelectedRouteIndex(0);
+    }
+
     setIsLoading(true);
 
     try {
       const results = await findWalkingRoutes(
-        start,
-        destination,
-        avoidStairs
+        from,
+        to,
+        avoid,
+        stops
       );
+
+      if (id !== requestId.current) return;
 
       if (results.length === 0) {
         setMessage(
-          "No walking routes were found between these buildings."
+          "No walking routes were found for these stops."
         );
         return;
       }
 
-      // Save all routes
       setRouteOptions(results);
-
-      // Display the first route initially
       setSelectedRouteIndex(0);
       setRoute(results[0]);
 
       setMessage(
-        results.length > 1
-          ? `${results.length} walking routes found. Select an option to compare. Accessibility is unverified.`
-          : "Walking route found. No additional alternatives are available. Accessibility is unverified."
+        stops.length > 0
+          ? `Route updated with ${stops.length} stop${stops.length === 1 ? "" : "s"}. Accessibility is unverified.`
+          : results.length > 1
+            ? `${results.length} walking routes found. Select an option to compare. Accessibility is unverified.`
+            : "Walking route found. No additional alternatives are available. Accessibility is unverified."
       );
 
     } catch (error) {
       console.error("Routing error:", error);
 
-      setRoute(null);
-      setRouteOptions([]);
+      if (id !== requestId.current) return;
 
       setMessage(
         "Could not load walking routes. Please try again."
       );
 
     } finally {
-      setIsLoading(false);
+      if (id === requestId.current) {
+        setIsLoading(false);
+      }
     }
   }
 
@@ -144,6 +167,10 @@ function App() {
   // ========================================
 
   function clearPreviousRoute() {
+    setWaypoints([]);
+    setHistory([]);
+    setActiveRouteId(null);
+    setEditingRoute(false);
     setRoute(null);
     setRouteOptions([]);
     setSelectedRouteIndex(0);
@@ -151,66 +178,135 @@ function App() {
   }
 
   // ========================================
-  // SAVE A NEW PATHWAY
+  // EDIT STOPS ON THE ROUTE
   // ========================================
 
-  function savePathway() {
-    if (pathName.trim() === "") {
-      setMessage("Please enter a pathway name.");
+  function nameOf(id: string) {
+    return buildings.find((b) => b.id === id)?.name ?? "";
+  }
+
+    function applyStops(next: Coordinates[], record = true) {
+    if (record) {
+      setHistory((previous) => [...previous, waypoints]);
+    }
+
+    setWaypoints(next);
+    findRoute(next, true);
+  }
+
+  function undoStop() {
+    const previous = history[history.length - 1];
+    if (!previous) return;
+
+    setHistory((items) => items.slice(0, -1));
+    applyStops(previous, false);
+  }
+
+  function clearStops() {
+    if (waypoints.length === 0) return;
+    applyStops([]);
+  }
+
+  function addStop(point: Coordinates) {
+    if (!start || !destination) {
+      setMessage("Choose a start and destination first.");
       return;
     }
+    applyStops([...waypoints, point]);
+  }
 
-    if (pathPoints.length < 2) {
-      setMessage("Add at least two pathway points.");
-      return;
-    }
+  // Dragging the line: grabbedAt decides the position in the
+  // stop list, dropped is the new stop's location
+  function insertStop(grabbedAt: Coordinates, dropped: Coordinates) {
+    if (!route) return;
 
-    const newPath: SavedPath = {
-      id: crypto.randomUUID(),
-      name: pathName.trim(),
-      coordinates: [...pathPoints],
-      accessibility: "unverified",
-      pathType,
-      stairs: stairsStatus
-    };
+    const index = getInsertIndex(route, waypoints, grabbedAt);
 
-    const updatedPaths = [...savedPaths, newPath];
+    applyStops([
+      ...waypoints.slice(0, index),
+      dropped,
+      ...waypoints.slice(index)
+    ]);
+  }
 
-    try {
-      storeSavedPaths(updatedPaths);
+  function moveStop(index: number, point: Coordinates) {
+    applyStops(waypoints.map((p, i) => (i === index ? point : p)));
+  }
 
-      setSavedPaths(updatedPaths);
-      setPathPoints([]);
-      setPathName("");
-      setPathType("sidewalk");
-      setStairsStatus("unknown");
-
-      setMessage("Pathway saved successfully!");
-
-    } catch {
-      setMessage(
-        "Unable to save. Browser storage may be full."
-      );
-    }
+  function removeStop(index: number) {
+    applyStops(waypoints.filter((_, i) => i !== index));
   }
 
   // ========================================
-  // DELETE SAVED PATHWAY
+  // SAVED ROUTES
   // ========================================
 
-  function deletePathway(id: string) {
-    const updatedPaths = savedPaths.filter(
-      (path) => path.id !== id
-    );
+  function saveRoute() {
+    if (!start || !destination) {
+      setMessage("Choose a start and destination first.");
+      return;
+    }
+
+    const name =
+      routeName.trim() ||
+      `${nameOf(start)} → ${nameOf(destination)}`;
+
+    const entry: SavedRoute = {
+      id: activeRouteId ?? crypto.randomUUID(),
+      name,
+      start,
+      destination,
+      avoidStairs,
+      waypoints
+    };
+
+    const exists = savedRoutes.some((r) => r.id === entry.id);
+
+    const updated = exists
+      ? savedRoutes.map((r) => (r.id === entry.id ? entry : r))
+      : [...savedRoutes, entry];
 
     try {
-      storeSavedPaths(updatedPaths);
-      setSavedPaths(updatedPaths);
-
-      setMessage("Pathway deleted.");
-
+      storeSavedRoutes(updated);
+      setSavedRoutes(updated);
+      setActiveRouteId(entry.id);
+      setRouteName(name);
+      setMessage(exists ? "Route updated." : "Route saved.");
     } catch {
-      setMessage("Unable to delete saved pathway.");
+      setMessage("Unable to save. Browser storage may be full.");
+    }
+  }
+
+  function loadRoute(saved: SavedRoute) {
+    setStart(saved.start);
+    setDestination(saved.destination);
+    setAvoidStairs(saved.avoidStairs);
+    setSelectedBuilding(saved.start);
+    setWaypoints(saved.waypoints);
+    setHistory([]);
+    setRouteName(saved.name);
+    setActiveRouteId(saved.id);
+    setEditingRoute(true);
+
+    findRoute(
+      saved.waypoints,
+      false,
+      saved.start,
+      saved.destination,
+      saved.avoidStairs
+    );
+  }
+
+  function deleteRoute(id: string) {
+    const updated = savedRoutes.filter((r) => r.id !== id);
+
+    try {
+      storeSavedRoutes(updated);
+      setSavedRoutes(updated);
+      if (activeRouteId === id) setActiveRouteId(null);
+      setMessage("Route deleted.");
+    } catch {
+      setMessage("Unable to delete saved route.");
     }
   }
 
@@ -330,7 +426,7 @@ function App() {
           <button
             type="button"
             className="find-route-button"
-            onClick={findRoute}
+            onClick={() => findRoute()}
             disabled={isLoading}
           >
             {isLoading
@@ -405,153 +501,77 @@ function App() {
           </p>
 
           {/* =====================================
-              PATHWAY EDITOR
+              CUSTOMIZE YOUR ROUTE
              ===================================== */}
 
           <div className="path-editor">
-            <details
-              className="path-editor-panel"
-              onToggle={(event) => {
-                if (!event.currentTarget.open) {
-                  setEditingPaths(false);
-                }
-              }}
-            >
-              <summary className="path-editor-summary">
-                <span>✏️ Pathway Editor</span>
-                <span className="path-editor-arrow">⌄</span>
-              </summary>
+          <details className="path-editor-panel route-editor" open>
+            <summary className="path-editor-summary">
+              <span>📍 Customize Your Route</span>
+              <span className="path-editor-arrow">⌄</span>
+            </summary>
 
             <p>
-              Click along campus sidewalks to
-              trace a path.
+              Add places you'd like to pass through before
+              reaching your destination.
             </p>
-
-            {/* ENABLE EDITING */}
 
             <label className="editor-toggle">
-
               <input
                 type="checkbox"
-                checked={editingPaths}
-                onChange={(e) => {
-                  setEditingPaths(e.target.checked);
-                  clearPreviousRoute();
-                }}
+                checked={editingRoute}
+                disabled={!route}
+                onChange={(e) => setEditingRoute(e.target.checked)}
               />
-
-              Enable pathway editing
-
+              Edit route on map
             </label>
 
-            <p>
-              Points added: {pathPoints.length}
-            </p>
+            {!route && (
+              <p>
+                Find a route first, then turn on map editing.
+              </p>
+            )}
 
-            {/* PATHWAY NAME */}
+            {editingRoute && (
+              <p>
+                Click the map to add a stop, or drag the route
+                line to bend it through a new point. Drag a
+                numbered stop to move it.
+              </p>
+            )}
 
-            <label htmlFor="pathName">
-              Pathway name
-            </label>
+            <span className="stop-label">Starting location</span>
+            <div className="stop-field stop-start">
+              <span>◎ {nameOf(start) || "Choose a starting location"}</span>
+            </div>
 
-            <input
-              id="pathName"
-              type="text"
-              className="path-name-input"
-              placeholder="e.g. Engineering sidewalk 1"
-              value={pathName}
-              onChange={(e) =>
-                setPathName(e.target.value)
-              }
-            />
+            {waypoints.map((_, index) => (
+              <div key={index}>
+                <span className="stop-label">Waypoint</span>
+                <div className="stop-field stop-waypoint">
+                  <span>◎ Stop {index + 1} · Selected on map</span>
+                  <button
+                    type="button"
+                    aria-label={`Remove stop ${index + 1}`}
+                    onClick={() => removeStop(index)}
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            ))}
 
-            {/* PATHWAY TYPE */}
+            <span className="stop-label">Destination</span>
+            <div className="stop-field stop-end">
+              <span>⚑ {nameOf(destination) || "Choose a destination"}</span>
+            </div>
 
-            <label htmlFor="pathType">
-              Pathway type
-            </label>
-
-            <select
-              id="pathType"
-              value={pathType}
-              onChange={(e) =>
-                setPathType(
-                  e.target.value as PathType
-                )
-              }
-            >
-              <option value="sidewalk">
-                Sidewalk
-              </option>
-
-              <option value="ramp">
-                Ramp
-              </option>
-
-              <option value="other">
-                Other / Unknown
-              </option>
-            </select>
-
-            {/* STAIRS STATUS */}
-
-            <label htmlFor="stairsStatus">
-              Does this pathway contain stairs?
-            </label>
-
-            <select
-              id="stairsStatus"
-              value={stairsStatus}
-              onChange={(e) =>
-                setStairsStatus(
-                  e.target.value as StairsStatus
-                )
-              }
-            >
-              <option value="unknown">
-                Unknown / Not verified
-              </option>
-
-              <option value="no">
-                No stairs observed
-              </option>
-
-              <option value="yes">
-                Stairs present
-              </option>
-            </select>
-
-            <p className="verification-note">
-              These are preliminary observations.
-              Pathways remain unverified until
-              checked against reliable accessibility
-              information.
-            </p>
-
-            {/* SAVE PATHWAY */}
-
-            <button
-              type="button"
-              className="path-save-button"
-              onClick={savePathway}
-              disabled={pathPoints.length < 2}
-            >
-              Save Pathway
-            </button>
-
-            {/* UNDO AND CLEAR BUTTONS */}
-
-            <div className="editor-buttons">
-
+                        <div className="editor-buttons">
               <button
                 type="button"
-                disabled={pathPoints.length === 0}
                 className="path-undo-button"
-                onClick={() =>
-                  setPathPoints((points) =>
-                    points.slice(0, -1)
-                  )
-                }
+                disabled={history.length === 0}
+                onClick={undoStop}
               >
                 Undo
               </button>
@@ -559,108 +579,74 @@ function App() {
               <button
                 type="button"
                 className="path-clear-button"
-                onClick={() => setPathPoints([])}
+                disabled={waypoints.length === 0}
+                onClick={clearStops}
               >
                 Clear
               </button>
-
             </div>
+            
+            <button
+              type="button"
+              className="route-recalc-button"
+              disabled={isLoading || !start || !destination}
+              onClick={() => findRoute()}
+            >
+              Recalculate Route
+            </button>
 
-            {/* COPY COORDINATES */}
+            <input
+              type="text"
+              className="path-name-input"
+              placeholder="Route name (optional)"
+              value={routeName}
+              onChange={(e) => setRouteName(e.target.value)}
+            />
 
             <button
               type="button"
-              disabled={pathPoints.length < 2}
-              className="path-copy-button"
-              onClick={async () => {
-                try {
-                  await navigator.clipboard.writeText(
-                    JSON.stringify(
-                      pathPoints,
-                      null,
-                      2
-                    )
-                  );
-
-                  setMessage(
-                    "Path coordinates copied!"
-                  );
-
-                } catch {
-                  setMessage(
-                    "Could not copy coordinates."
-                  );
-                }
-              }}
+              className="route-save-button"
+              disabled={!route}
+              onClick={saveRoute}
             >
-              Copy coordinates
+              Save Entire Route
             </button>
-
-          
-            </details>
-
+          </details>
           </div>
 
           {/* =====================================
-              SAVED PATHWAYS
-            ===================================== */}
+              SAVED ROUTES
+             ===================================== */}
 
           <div className="saved-paths">
+            <h3>Saved Routes ({savedRoutes.length})</h3>
 
-
-            <h3>
-              Saved Pathways ({savedPaths.length})
-            </h3>
-
-            {savedPaths.length === 0 && (
-              <p>No pathways saved yet.</p>
+            {savedRoutes.length === 0 && (
+              <p>No routes saved yet.</p>
             )}
 
-            {savedPaths.map((path) => (
-              <div
-                className="saved-path"
-                key={path.id}
-              >
-
+            {savedRoutes.map((saved) => (
+              <div className="saved-path" key={saved.id}>
                 <div>
-
-                  <strong>
-                    {path.name}
-                  </strong>
-
+                  <strong>{saved.name}</strong>
                   <p>
-                    {path.coordinates.length} points
+                    {nameOf(saved.start)} → {nameOf(saved.destination)}
                     {" · "}
-                    {path.pathType}
+                    {saved.waypoints.length} stop
+                    {saved.waypoints.length === 1 ? "" : "s"}
                   </p>
-
-                  <p>
-                    Stairs:{" "}
-                    {path.stairs === "yes"
-                      ? "Present"
-                      : path.stairs === "no"
-                        ? "Not observed"
-                        : "Unknown"}
-                  </p>
-
-                  <p>
-                    Accessibility: Unverified
-                  </p>
-
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    deletePathway(path.id)
-                  }
-                >
-                  Delete
-                </button>
-
+                <div className="editor-buttons">
+                  <button type="button" onClick={() => loadRoute(saved)}>
+                    Edit
+                  </button>
+                  <button type="button" onClick={() => deleteRoute(saved.id)}>
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
-
           </div>
 
         </aside>
@@ -689,16 +675,11 @@ function App() {
             setRoute(selected);
           }}
 
-          editingPaths={editingPaths}
-          pathPoints={pathPoints}
-          savedPaths={savedPaths}
-
-          onAddPoint={(point) => {
-            setPathPoints((previous) => [
-              ...previous,
-              point
-            ]);
-          }}
+          editingRoute={editingRoute}
+          waypoints={waypoints}
+          onAddStop={addStop}
+          onInsertStop={insertStop}
+          onMoveStop={moveStop}
         />
 
 

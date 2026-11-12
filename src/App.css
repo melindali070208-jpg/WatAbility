@@ -1276,53 +1276,119 @@ textarea {
   background-color: #ffd6f9;
 }
 
-/* Save Pathway — soft lavender */
-.path-editor .path-save-button {
-  background: #ffd6f9;
-  color: #41334C;
-  border: 1px solid #CBB3D7;
+/* WatAbility checkbox colours */
+
+input[type="checkbox"] {
+  accent-color: #d06fc2;
 }
 
-/* Undo — soft sage */
-.path-editor .path-undo-button {
+/* ===== Customize Your Route ===== */
+.stop-label {
+  display: block;
+  margin: 12px 0 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.stop-field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.stop-waypoint {
+  background: #fdf4de;
+  border-color: #ead9a4;
+  color: #7a5c1e;
+}
+
+.stop-waypoint button {
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.route-recalc-button,
+.route-save-button {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.route-editor .route-recalc-button,
+.route-editor .route-save-button {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.route-editor .route-recalc-button { background: #d06fc2; color: #000000; }
+.route-editor .route-save-button   { background: #d06fc2; color: #000000; }
+
+.route-editor .route-recalc-button:hover:not(:disabled) { background: #ffd6f9; }
+.route-editor .route-save-button:hover:not(:disabled)   { background: #ffd6f9; }
+
+.route-editor .route-recalc-button:disabled,
+.route-editor .route-save-button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Undo / Clear inside Customize Your Route */
+.route-editor .editor-buttons {
+  margin-top: 12px;
+}
+
+.route-editor .path-undo-button,
+.route-editor .path-clear-button {
+  padding: 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.route-editor .path-undo-button {
   background: #DDE7D5;
   color: #36513B;
   border: 1px solid #C8D8BE;
 }
 
-/* Clear — pastel peach */
-.path-editor .path-clear-button {
+.route-editor .path-clear-button {
   background: #DDE7D5;
-  color: #68433D;
+  color: #36513B;
   border: 1px solid #E8C9C0;
 }
 
-/* Copy coordinates — powder blue */
-.path-editor .path-copy-button {
-  background: #DDE7D5;
-  color: #3D5368;
-  border: 1px solid #CBD8E5;
+.route-editor .path-undo-button:disabled,
+.route-editor .path-clear-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-/* Soft hover effects */
-.path-editor .path-save-button:hover:not(:disabled) {
-  background: #ffd6f9;
+/* Keep Undo / Clear colours on hover and remove the sidebar's extra top margin */
+.route-editor .editor-buttons button { margin-top: 0; }
+.route-editor .path-undo-button:hover:not(:disabled)  { background: #ffd6f9; }
+.route-editor .path-clear-button:hover:not(:disabled) { background: #ffd6f9; }
+
+/* Small × button on stop rows */
+.route-editor .stop-waypoint button {
+  width: auto;
+  margin: 0;
+  padding: 0 4px;
+  background: none;
 }
 
-.path-editor .path-undo-button:hover:not(:disabled) {
-  background: #DDE7D5;
-}
-
-.path-editor .path-clear-button:hover:not(:disabled) {
-  background: #DDE7D5;
-}
-
-.path-editor .path-copy-button:hover:not(:disabled) {
-  background: #DDE7D5;
-}
-
-/* WatAbility checkbox colours */
-
-input[type="checkbox"] {
-  accent-color: #d06fc2;
+.route-editor .path-name-input {
+  margin-top: 10px;
 }

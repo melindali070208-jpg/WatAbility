@@ -8,7 +8,6 @@ import workerUrl from
 
 import { buildings } from "./buildings";
 import type { RouteResult } from "./routes";
-import type { SavedPath } from "./savedPaths";
 import { calculateRouteStats } from "./routeStats";
 
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -18,16 +17,22 @@ maplibregl.setWorkerUrl(workerUrl);
 
 type Coordinates = [number, number];
 
+const round = (n: number) => Number(n.toFixed(6));
+
+// True briefly after a line-drag so the mouseup does not also count as a click
+let justDragged = false;
+
 type CampusMapProps = {
   selectedBuilding: string;
   route: RouteResult | null;
   routeOptions: RouteResult[];
   selectedRouteIndex: number;
   onSelectRoute: (index: number) => void;
-  editingPaths: boolean;
-  pathPoints: Coordinates[];
-  savedPaths: SavedPath[];
-  onAddPoint: (point: Coordinates) => void;
+  editingRoute: boolean;
+  waypoints: Coordinates[];
+  onAddStop: (point: Coordinates) => void;
+  onInsertStop: (grabbedAt: Coordinates, dropped: Coordinates) => void;
+  onMoveStop: (index: number, point: Coordinates) => void;
 };
 
 // Colours for alternative routes
@@ -57,7 +62,8 @@ function updateSource(
 // Draw the selected route as a solid blue line
 function drawRoute(
   map: maplibregl.Map,
-  route: RouteResult | null
+  route: RouteResult | null,
+  fit = true
 ) {
   const coordinates = route?.coordinates ?? [];
 
@@ -76,6 +82,7 @@ function drawRoute(
   updateSource(map, "route", features);
 
   if (
+    fit &&
     coordinates.length >= 2 &&
     map.getSource("route")
   ) {
@@ -132,66 +139,17 @@ function drawAlternativeRoutes(
   updateSource(map, "alternative-routes", features);
 }
 
-// Draw unsaved orange pathway
-function drawDraftPath(
-  map: maplibregl.Map,
-  points: Coordinates[]
-) {
-  const features: Feature[] =
-    points.map((point) => ({
-      type: "Feature",
-      properties: {},
-      geometry: {
-        type: "Point",
-        coordinates: point
-      }
-    }));
-
-  if (points.length >= 2) {
-    features.push({
-      type: "Feature",
-      properties: {},
-      geometry: {
-        type: "LineString",
-        coordinates: points
-      }
-    });
-  }
-
-  updateSource(map, "draft-path", features);
-}
-
-// Draw saved green pathways
-function drawSavedPaths(
-  map: maplibregl.Map,
-  savedPaths: SavedPath[]
-) {
-  const features: Feature[] =
-    savedPaths.map((path) => ({
-      type: "Feature",
-      properties: {
-        name: path.name,
-        accessibility: path.accessibility
-      },
-      geometry: {
-        type: "LineString",
-        coordinates: path.coordinates
-      }
-    }));
-
-  updateSource(map, "saved-paths", features);
-}
-
 function CampusMap({
   selectedBuilding,
   route,
   routeOptions,
   selectedRouteIndex,
   onSelectRoute,
-  editingPaths,
-  pathPoints,
-  savedPaths,
-  onAddPoint
+  editingRoute,
+  waypoints,
+  onAddStop,
+  onInsertStop,
+  onMoveStop
 }: CampusMapProps) {
 
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -201,19 +159,20 @@ function CampusMap({
   const routeRef = useRef(route);
   const routeOptionsRef = useRef(routeOptions);
   const selectedIndexRef = useRef(selectedRouteIndex);
-  const editingRef = useRef(editingPaths);
-  const pointsRef = useRef(pathPoints);
-  const savedRef = useRef(savedPaths);
-  const addPointRef = useRef(onAddPoint);
+  const editingRef = useRef(editingRoute);
+  const addStopRef = useRef(onAddStop);
+  const insertStopRef = useRef(onInsertStop);
+  const moveStopRef = useRef(onMoveStop);
+  const markersRef = useRef<maplibregl.Marker[]>([]);
   const selectRouteRef = useRef(onSelectRoute);
 
   routeRef.current = route;
   routeOptionsRef.current = routeOptions;
   selectedIndexRef.current = selectedRouteIndex;
-  editingRef.current = editingPaths;
-  pointsRef.current = pathPoints;
-  savedRef.current = savedPaths;
-  addPointRef.current = onAddPoint;
+  editingRef.current = editingRoute;
+  addStopRef.current = onAddStop;
+  insertStopRef.current = onInsertStop;
+  moveStopRef.current = onMoveStop;
   selectRouteRef.current = onSelectRoute;
 
   // ========================================
@@ -331,31 +290,6 @@ function CampusMap({
 
     map.on("load", () => {
 
-      // GREEN SAVED PATHWAYS
-
-      map.addSource("saved-paths", {
-        type: "geojson",
-        data: {
-          type: "FeatureCollection",
-          features: []
-        }
-      });
-
-      map.addLayer({
-        id: "saved-path-lines",
-        type: "line",
-        source: "saved-paths",
-        layout: {
-          "line-cap": "round",
-          "line-join": "round"
-        },
-        paint: {
-          "line-color": "#0f766e",
-          "line-width": 5,
-          "line-opacity": 0.85
-        }
-      });
-
       // ALTERNATIVE ROUTE SOURCE
 
       map.addSource("alternative-routes", {
@@ -405,45 +339,6 @@ function CampusMap({
         paint: {
           "line-color": "#2563eb",
           "line-width": 6
-        }
-      });
-
-      // ORANGE PATHWAY EDITOR
-
-      map.addSource("draft-path", {
-        type: "geojson",
-        data: {
-          type: "FeatureCollection",
-          features: []
-        }
-      });
-
-      map.addLayer({
-        id: "draft-line",
-        type: "line",
-        source: "draft-path",
-        filter: ["==", "$type", "LineString"],
-        layout: {
-          "line-cap": "round",
-          "line-join": "round"
-        },
-        paint: {
-          "line-color": "#e87924",
-          "line-width": 5,
-          "line-dasharray": [2, 1]
-        }
-      });
-
-      map.addLayer({
-        id: "draft-points",
-        type: "circle",
-        source: "draft-path",
-        filter: ["==", "$type", "Point"],
-        paint: {
-          "circle-radius": 6,
-          "circle-color": "#ea580c",
-          "circle-stroke-color": "#ffffff",
-          "circle-stroke-width": 2
         }
       });
 
@@ -581,31 +476,85 @@ function CampusMap({
       );
 
       // Load current data after sources exist
-      drawSavedPaths(map, savedRef.current);
-
       drawAlternativeRoutes(
         map,
         routeOptionsRef.current,
         selectedIndexRef.current
       );
 
-      drawRoute(map, routeRef.current);
-      drawDraftPath(map, pointsRef.current);
+      drawRoute(map, routeRef.current, !editingRef.current);
+
+      // ========================================
+      // DRAG THE ROUTE LINE TO ADD / BEND A STOP
+      // ========================================
+
+      let grabbedAt: Coordinates | null = null;
+
+      const ghostElement = document.createElement("div");
+      ghostElement.className = "drag-ghost";
+      const ghost = new maplibregl.Marker({ element: ghostElement });
+
+      map.on("mouseenter", "route-line", () => {
+        if (editingRef.current) {
+          map.getCanvas().style.cursor = "grab";
+        }
+      });
+
+      map.on("mouseleave", "route-line", () => {
+        if (!grabbedAt) map.getCanvas().style.cursor = "";
+      });
+
+      map.on("mousedown", "route-line", (event) => {
+        if (!editingRef.current) return;
+
+        event.preventDefault();
+        grabbedAt = [event.lngLat.lng, event.lngLat.lat];
+        map.dragPan.disable();
+      });
+
+      map.on("mousemove", (event) => {
+        if (!grabbedAt) return;
+        ghost.setLngLat(event.lngLat).addTo(map);
+      });
+
+      map.on("mouseup", (event) => {
+        if (!grabbedAt) return;
+
+        const from = grabbedAt;
+        grabbedAt = null;
+
+        ghost.remove();
+        map.dragPan.enable();
+
+        const a = map.project(from);
+        const b = map.project(event.lngLat);
+        const movedPixels = Math.hypot(a.x - b.x, a.y - b.y);
+
+        // Ignore tiny movements so a plain click still adds a stop
+        if (movedPixels < 6) return;
+
+        justDragged = true;
+        setTimeout(() => { justDragged = false; }, 50);
+
+        insertStopRef.current(
+          [round(from[0]), round(from[1])],
+          [round(event.lngLat.lng), round(event.lngLat.lat)]
+        );
+      });
     });
 
     // ========================================
-    // PATHWAY EDITOR CLICKING
+    // CLICK MAP TO ADD A STOP
     // ========================================
 
     map.on("click", (event) => {
       if (!editingRef.current) return;
+      if (justDragged) return;
 
-      const point: Coordinates = [
-        Number(event.lngLat.lng.toFixed(6)),
-        Number(event.lngLat.lat.toFixed(6))
-      ];
-
-      addPointRef.current(point);
+      addStopRef.current([
+        round(event.lngLat.lng),
+        round(event.lngLat.lat)
+      ]);
     });
 
     map.on("error", (event) => {
@@ -649,7 +598,8 @@ function CampusMap({
     const map = mapRef.current;
     if (!map || !map.getSource("route")) return;
 
-    drawRoute(map, route);
+    // Do not re-zoom the map while the person is editing stops
+    drawRoute(map, route, !editingRef.current);
   }, [route]);
 
   // ========================================
@@ -671,33 +621,43 @@ function CampusMap({
   }, [routeOptions, selectedRouteIndex]);
 
   // ========================================
-  // UPDATE ORANGE PATHWAY EDITOR
+  // STOP MARKERS (numbered, draggable while editing)
   // ========================================
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !map.getSource("draft-path")) return;
+    if (!map) return;
 
-    drawDraftPath(map, pathPoints);
-  }, [pathPoints]);
+    markersRef.current.forEach((marker) => marker.remove());
 
-  // ========================================
-  // UPDATE GREEN SAVED PATHWAYS
-  // ========================================
+    markersRef.current = waypoints.map((point, index) => {
+      const element = document.createElement("div");
+      element.className = "stop-marker";
+      element.textContent = String(index + 1);
+      element.addEventListener("click", (e) => e.stopPropagation());
 
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !map.getSource("saved-paths")) return;
+      const marker = new maplibregl.Marker({
+        element,
+        draggable: editingRoute
+      })
+        .setLngLat(point)
+        .addTo(map);
 
-    drawSavedPaths(map, savedPaths);
-  }, [savedPaths]);
+      marker.on("dragend", () => {
+        const p = marker.getLngLat();
+        moveStopRef.current(index, [round(p.lng), round(p.lat)]);
+      });
+
+      return marker;
+    });
+  }, [waypoints, editingRoute]);
 
   return (
     <div
       ref={mapContainer}
       className="campus-map"
       style={{
-        cursor: editingPaths ? "crosshair" : "grab"
+        cursor: editingRoute ? "crosshair" : "grab"
       }}
     />
   );

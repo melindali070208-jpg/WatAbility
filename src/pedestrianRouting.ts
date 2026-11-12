@@ -20,7 +20,8 @@ type ApiResponse = {
 export async function findWalkingRoutes(
   start: string,
   destination: string,
-  avoidStairs: boolean
+  avoidStairs: boolean,
+  waypoints: Coordinates[] = []
 ): Promise<RouteResult[]> {
 
   const startBuilding = buildings.find(
@@ -44,6 +45,11 @@ export async function findWalkingRoutes(
   const request = {
     locations: [
       { lat: startLat, lon: startLon },
+      ...waypoints.map(([lon, lat]) => ({
+        lat,
+        lon,
+        type: "through"
+      })),
       { lat: endLat, lon: endLon }
     ],
 
@@ -63,7 +69,8 @@ export async function findWalkingRoutes(
     units: "km",
 
     // Ask for up to two additional routes
-    alternates: 2
+    // Alternates are only available for two-point routes
+    alternates: waypoints.length === 0 ? 2 : 0
   };
 
   const url =
