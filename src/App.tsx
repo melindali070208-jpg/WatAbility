@@ -224,7 +224,7 @@ function App() {
       {/* HEADER */}
 
       <header className="header">
-        <h1>AccessRoute</h1>
+        <h1>WatAbility</h1>
         <span>Accessible Campus Navigation</span>
       </header>
 
