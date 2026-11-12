@@ -6,3 +6,24 @@
   border-radius: 12px;
   overflow: hidden;
 }
+/* MapLibre popups */
+.maplibregl-popup-content {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 400;
+}
+
+/* Popup headings */
+.maplibregl-popup-content strong {
+  font-weight: 600;
+}
+
+/* Map controls */
+.maplibregl-control-container {
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Custom route tooltips */
+.route-tooltip,
+.route-tooltip * {
+  font-family: 'Poppins', sans-serif;
+}

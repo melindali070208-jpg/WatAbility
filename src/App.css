@@ -1105,3 +1105,74 @@ body {
     background-position: right 12px center;
   }
 }
+
+/* =====================================
+   WATABIlITY TYPOGRAPHY SYSTEM
+   ===================================== */
+
+/* Default website text — Regular */
+body,
+.app,
+button,
+input,
+select,
+textarea {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 400;
+}
+
+/* Main WatAbility title — Bold */
+.header h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.8px;
+}
+
+/* Section subtitles — Semibold */
+.sidebar h2,
+.sidebar h3,
+.path-editor-summary {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+/* Field labels — Medium */
+.sidebar label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 500;
+}
+
+/* Buttons — Semibold */
+button {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+}
+
+/* Dropdown selections — Regular */
+select,
+input,
+textarea {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 400;
+}
+
+/* Map popup headings — Poppins Semibold */
+.maplibregl-popup-content strong,
+.maplibregl-popup-content b {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+}
+
+/* Map popup descriptions — Poppins Regular */
+.maplibregl-popup-content,
+.maplibregl-popup-content p,
+.maplibregl-popup-content span {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 400;
+}
+
+/* Map route tooltips — Poppins */
+.maplibregl-tooltip {
+  font-family: 'Poppins', sans-serif;
+}
