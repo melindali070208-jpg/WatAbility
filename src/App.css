@@ -1212,3 +1212,52 @@ textarea {
 .maplibregl-tooltip {
   font-family: 'Poppins', sans-serif;
 }
+
+/* WATABIlITY — WARM PASTEL PALETTE */
+
+:root {
+  --wat-lavender: #ffd6f9;
+  --wat-cream: #fffcf5;
+  --wat-yellow: #FFFEFB;
+  --wat-sage: #e3f7d8;
+  --wat-blue: #E8F0EC;
+  --wat-ink: #090809;
+  --wat-button: #B4A0C5;
+}
+
+/* Header */
+.header {
+  background-color: var(--wat-lavender);
+}
+
+.header h1,
+.header-center-title,
+.header-center-subtitle {
+  color: var(--wat-ink);
+}
+
+/* Sidebar */
+.sidebar {
+  background-color: var(--wat-cream);
+  color: var(--wat-ink);
+}
+
+/* Section headings */
+.sidebar h2,
+.sidebar h3 {
+  color: var(--wat-ink);
+}
+
+/* Text inputs and dropdowns */
+.sidebar input,
+.sidebar select,
+.sidebar textarea {
+  background: #FFFFFF;
+  color: var(--wat-ink);
+  border-color: #DDD0DF;
+}
+
+/* Page background */
+.app {
+  background-color: var(--wat-cream);
+}
