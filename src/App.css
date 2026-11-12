@@ -168,7 +168,7 @@ body {
 }
 
 .sidebar button:hover:not(:disabled) {
-  background: #115e59;
+  background: #48beb6;
 }
 
 .sidebar button:disabled {
