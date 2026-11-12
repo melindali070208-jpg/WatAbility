@@ -1320,3 +1320,9 @@ textarea {
 .path-editor .path-copy-button:hover:not(:disabled) {
   background: #DDE7D5;
 }
+
+/* WatAbility checkbox colours */
+
+input[type="checkbox"] {
+  accent-color: #d06fc2;
+}
