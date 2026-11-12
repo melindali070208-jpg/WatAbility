@@ -1,0 +1,1107 @@
+
+/* ========================================
+   ACCESSROUTE - COMPLETE APP.CSS
+   ======================================== */
+
+/* GLOBAL STYLES */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  font-family: Arial, sans-serif;
+}
+
+
+/* ========================================
+   MAIN APPLICATION
+   ======================================== */
+
+.app {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #f8fafc;
+  color: #1e293b;
+  font-family: Arial, sans-serif;
+}
+
+
+/* HEADER */
+
+.header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  background: white;
+  padding: 20px 40px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.header h1 {
+  margin: 0;
+  color: #0f766e;
+  font-size: 28px;
+}
+
+.header span {
+  color: #64748b;
+  font-size: 14px;
+}
+
+
+/* ========================================
+   MAIN LAYOUT
+   ======================================== */
+
+.main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+
+/* ========================================
+   SIDEBAR
+   ======================================== */
+
+.sidebar {
+  width: 350px;
+  flex-shrink: 0;
+  min-height: 0;
+
+  overflow-y: auto;
+  background: white;
+  padding: 30px;
+  border-right: 1px solid #e2e8f0;
+}
+
+.sidebar h2 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 23px;
+}
+
+.sidebar > p {
+  color: #64748b;
+}
+
+.sidebar label {
+  display: block;
+  margin-top: 22px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.sidebar select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: white;
+  color: #1e293b;
+  font-size: 14px;
+}
+
+.sidebar select:focus,
+.sidebar input:focus {
+  outline: 2px solid #14b8a6;
+  outline-offset: 2px;
+}
+
+
+/* ========================================
+   AVOID STAIRS CHECKBOX
+   ======================================== */
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.checkbox-row input {
+  width: 16px;
+  height: 16px;
+  accent-color: #0f766e;
+  cursor: pointer;
+}
+
+.checkbox-row label {
+  margin: 0;
+  cursor: pointer;
+}
+
+
+/* ========================================
+   BUTTONS
+   ======================================== */
+
+.sidebar button {
+  width: 100%;
+  background: #0f766e;
+  color: white;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  margin-top: 25px;
+
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.sidebar button:hover:not(:disabled) {
+  background: #115e59;
+}
+
+.sidebar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sidebar button:focus-visible {
+  outline: 3px solid #5eead4;
+  outline-offset: 2px;
+}
+
+
+/* ========================================
+   ROUTE STATUS MESSAGES
+   ======================================== */
+
+.message {
+  margin-top: 20px;
+  padding: 12px;
+  background: #ccfbf1;
+  color: #115e59;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.demo-warning {
+  margin-top: 24px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+
+/* ========================================
+   CAMPUS MAP
+   ======================================== */
+
+.map-area {
+  position: relative;
+  flex: 1;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.campus-map {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+
+/* ========================================
+   PATHWAY EDITOR
+   ======================================== */
+
+.path-editor {
+  margin-top: 25px;
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+}
+
+.path-editor h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 17px;
+  color: #1e293b;
+}
+
+.path-editor p {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.path-editor .editor-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.editor-toggle input {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  accent-color: #0f766e;
+}
+
+.path-editor label:not(.editor-toggle) {
+  display: block;
+  margin-top: 15px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.path-name-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: white;
+  color: #1e293b;
+  font-size: 14px;
+}
+
+.path-editor select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: white;
+  color: #1e293b;
+}
+
+.path-editor button {
+  margin-top: 10px;
+  padding: 10px;
+  font-size: 13px;
+}
+
+.editor-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.editor-buttons button {
+  flex: 1;
+  min-width: 0;
+}
+
+.path-editor .verification-note {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #64748b;
+  margin-top: 12px;
+}
+
+
+/* ========================================
+   SAVED PATHWAYS
+   ======================================== */
+
+.saved-paths {
+  margin-top: 20px;
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.saved-paths h3 {
+  margin-top: 0;
+  font-size: 17px;
+}
+
+.saved-paths > p {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.saved-path {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.saved-path:last-child {
+  border-bottom: none;
+}
+
+.saved-path strong {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.saved-path p {
+  margin: 4px 0;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.saved-path button {
+  width: auto;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 8px 12px;
+  background: #475569;
+  font-size: 12px;
+}
+
+.saved-path button:hover:not(:disabled) {
+  background: #334155;
+}
+
+
+/* ========================================
+   COMPACT FLOATING ROUTE CARD
+   ======================================== */
+
+.map-area .floating-route-card {
+  position: absolute;
+  bottom: 28px;
+  left: 28px;
+  z-index: 20;
+
+  width: 235px;
+  max-width: calc(100% - 56px);
+  max-height: calc(100% - 56px);
+  overflow-y: auto;
+
+  padding: 14px;
+
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 13px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+
+  color: #1e293b;
+  pointer-events: auto;
+}
+
+
+/* FLOATING CARD HEADER */
+
+.floating-route-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+
+  color: #0f766e;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+
+/* FLOATING CARD DISTANCE AND TIME */
+
+.floating-route-details {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.floating-route-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.floating-route-stat strong {
+  color: #1e293b;
+  font-size: 19px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.floating-route-stat span {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.floating-route-divider {
+  width: 1px;
+  height: 30px;
+  flex-shrink: 0;
+  background: #e2e8f0;
+}
+
+
+/* ========================================
+   EXPANDABLE ACCESSIBILITY SECTION
+   ======================================== */
+
+.route-accessibility {
+  margin-top: 13px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.route-accessibility summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  padding: 12px 0 0;
+  list-style: none;
+  cursor: pointer;
+
+  color: #475569;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.route-accessibility summary::-webkit-details-marker {
+  display: none;
+}
+
+.route-accessibility summary::marker {
+  content: "";
+}
+
+.route-accessibility summary:focus-visible {
+  outline: 2px solid #0f766e;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.accessibility-summary-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.accessibility-chevron {
+  color: #64748b;
+  font-size: 14px;
+  transition: transform 0.2s ease;
+}
+
+.route-accessibility[open] .accessibility-chevron {
+  transform: rotate(180deg);
+}
+
+
+/* EXPANDED ACCESSIBILITY CONTENT */
+
+.route-accessibility-content {
+  padding-top: 12px;
+}
+
+.route-accessibility-warning {
+  margin: 0 0 12px;
+  color: #92400e;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.accessibility-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 10px;
+}
+
+.accessibility-info-row span {
+  color: #64748b;
+}
+
+.accessibility-info-row strong {
+  color: #334155;
+  font-size: 10px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.accessibility-small-note {
+  margin: 10px 0 0;
+  color: #64748b;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+
+/* ========================================
+   FULLSCREEN MAP
+   ======================================== */
+
+.campus-map:fullscreen {
+  width: 100vw;
+  height: 100dvh;
+  min-height: 0;
+  border-radius: 0;
+}
+
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 700px) {
+
+  .app {
+    height: 100dvh;
+  }
+
+  .header {
+    padding: 12px 20px;
+  }
+
+  .header h1 {
+    font-size: 23px;
+  }
+
+  .header span {
+    display: none;
+  }
+
+  .main {
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .sidebar {
+    width: 100%;
+    max-height: 40%;
+    min-height: 0;
+    flex-shrink: 0;
+    overflow-y: auto;
+
+    padding: 16px;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .map-area {
+    flex: 1;
+    min-height: 0;
+    padding: 8px;
+  }
+
+  .campus-map {
+    min-height: 0;
+    border-radius: 8px;
+  }
+
+  .map-area .floating-route-card {
+    bottom: 18px;
+    left: 18px;
+    width: 220px;
+    max-width: calc(100% - 36px);
+    max-height: calc(100% - 36px);
+    padding: 12px;
+  }
+
+  .floating-route-stat strong {
+    font-size: 17px;
+  }
+
+  .campus-map:fullscreen {
+    border-radius: 0;
+  }
+
+}
+
+/* ========================================
+   STEP 13 - ALTERNATIVE ROUTES
+   ======================================== */
+
+.route-options {
+  margin-top: 16px;
+  padding: 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.route-options h3 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: #334155;
+}
+
+.sidebar .route-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  width: 100%;
+  margin: 7px 0;
+  padding: 12px;
+
+  background: white;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+
+  text-align: left;
+  cursor: pointer;
+}
+
+.sidebar .route-option:hover {
+  background: #f0fdfa;
+  border-color: #99f6e4;
+}
+
+.sidebar .route-option.selected {
+  background: #ccfbf1;
+  border-color: #0f766e;
+  color: #115e59;
+}
+
+.route-option-name {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.route-option-stats {
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.route-options-note {
+  margin: 10px 0 0;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+
+/* ========================================
+   STEP 14 - UI POLISH
+   ======================================== */
+
+/* COLLAPSIBLE PATHWAY EDITOR */
+
+.path-editor-panel {
+  margin-top: 20px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.path-editor-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+  transition: background 0.2s ease;
+}
+
+.path-editor-summary:hover {
+  background: #f0fdfa;
+}
+
+.path-editor-summary:focus-visible {
+  outline: 2px solid #0f766e;
+  outline-offset: -3px;
+}
+
+.path-editor-summary::-webkit-details-marker {
+  display: none;
+}
+
+.path-editor-summary::marker {
+  content: "";
+}
+
+.path-editor-arrow {
+  font-size: 18px;
+  color: #64748b;
+  transition: transform 0.2s ease;
+}
+
+.path-editor-panel[open] .path-editor-arrow {
+  transform: rotate(180deg);
+}
+
+/* Remove duplicate borders inside editor */
+
+.path-editor-panel .path-editor {
+  margin-top: 0;
+  padding: 16px;
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  border-radius: 0;
+  background: #ffffff;
+}
+
+/* FIX EDITOR LABEL ALIGNMENT */
+
+.path-editor-panel .editor-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.path-editor-panel .editor-toggle input {
+  flex-shrink: 0;
+}
+
+/* COMPACT SIDEBAR SPACING */
+
+.sidebar h2 {
+  letter-spacing: -0.4px;
+}
+
+.sidebar select {
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.sidebar select:hover {
+  border-color: #0f766e;
+}
+
+/* IMPROVED PRIMARY BUTTON */
+
+.sidebar > button {
+  border-radius: 10px;
+  box-shadow: 0 3px 8px rgba(15, 118, 110, 0.12);
+}
+
+/* SAVED PATHWAY CARDS */
+
+.saved-paths {
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.saved-path {
+  padding: 12px 0;
+}
+
+/* MORE POLISHED FLOATING ROUTE CARD */
+
+.map-area .floating-route-card {
+  box-shadow:
+    0 5px 20px rgba(15, 23, 42, 0.12);
+  border-radius: 14px;
+}
+
+/* KEEP THE NAVIGATION CONTROLS COMPACT */
+
+@media (max-width: 700px) {
+  .path-editor-summary {
+    padding: 13px;
+  }
+
+  .path-editor-panel .path-editor {
+    padding: 13px;
+  }
+
+  .sidebar {
+    padding: 16px;
+  }
+}
+
+/* ========================================
+   ACCESSROUTE - FINAL LAYOUT FIXES
+   ======================================== */
+
+/* 1. START AND DESTINATION DROPDOWNS */
+
+.sidebar select {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: 44px;
+
+  padding: 0 42px 0 14px;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+
+  background-color: #ffffff;
+  color: #1e293b;
+
+  font-size: 14px;
+
+  /* Replace the browser's default arrow */
+  appearance: none;
+  -webkit-appearance: none;
+
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364758b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px;
+
+  cursor: pointer;
+}
+
+.sidebar select:hover {
+  border-color: #0f766e;
+}
+
+.sidebar select:focus {
+  outline: 2px solid #14b8a6;
+  outline-offset: 2px;
+}
+
+
+/* ========================================
+   2. PATHWAY EDITOR OUTER CONTAINER
+   ======================================== */
+
+.path-editor-panel {
+  width: 100%;
+  min-width: 0;
+
+  margin-top: 20px;
+
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+
+  overflow: hidden;
+  box-shadow: none;
+}
+
+/* Fix extra outer padding if the details
+   panel is inside the old path-editor div */
+
+.path-editor:has(> .path-editor-panel) {
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: 0;
+  overflow: visible;
+}
+
+.path-editor:has(> .path-editor-panel)
+  > .path-editor-panel {
+  margin-top: 0;
+}
+
+
+/* ========================================
+   3. COLLAPSED EDITOR HEADER
+   ======================================== */
+
+.path-editor-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 100%;
+  min-height: 54px;
+  padding: 15px 17px;
+
+  background: #ffffff;
+  color: #1e293b;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  list-style: none;
+  cursor: pointer;
+}
+
+.path-editor-summary:hover {
+  background: #f8fafc;
+}
+
+.path-editor-summary::-webkit-details-marker {
+  display: none;
+}
+
+.path-editor-summary::marker {
+  content: "";
+}
+
+.path-editor-arrow {
+  margin-left: auto;
+  color: #64748b;
+  font-size: 18px;
+
+  transition: transform 0.2s ease;
+}
+
+.path-editor-panel[open] .path-editor-arrow {
+  transform: rotate(180deg);
+}
+
+
+/* ========================================
+   4. EXPANDED EDITOR CONTENT
+   ======================================== */
+
+/* If path-editor is inside details */
+
+.path-editor-panel > .path-editor {
+  width: 100%;
+  min-width: 0;
+
+  margin: 0;
+  padding: 16px;
+
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  border-radius: 0;
+
+  background: white;
+}
+
+/* If details is inside path-editor */
+
+.path-editor:has(> .path-editor-panel)
+  > .path-editor-panel[open] {
+  padding: 0 16px 16px;
+}
+
+.path-editor:has(> .path-editor-panel)
+  > .path-editor-panel[open]
+  > .path-editor-summary {
+  margin: 0 -16px 14px;
+  width: calc(100% + 32px);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* Keep the collapsed version compact */
+
+.path-editor:has(> .path-editor-panel)
+  > .path-editor-panel:not([open]) {
+  padding: 0;
+}
+
+
+/* ========================================
+   5. EDITOR FORM ELEMENTS
+   ======================================== */
+
+.path-editor-panel input[type="text"],
+.path-editor-panel select {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+}
+
+.path-editor-panel select {
+  height: 42px;
+  padding-left: 12px;
+  padding-right: 40px;
+}
+
+.path-editor-panel label:not(.editor-toggle) {
+  display: block;
+  margin-top: 14px;
+  margin-bottom: 6px;
+
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.path-editor-panel .editor-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  margin: 14px 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.path-editor-panel .editor-toggle input {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.path-editor-panel p {
+  line-height: 1.5;
+  font-size: 12px;
+}
+
+
+/* ========================================
+   6. EDITOR BUTTONS
+   ======================================== */
+
+.path-editor-panel button {
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+.path-editor-panel .editor-buttons {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.path-editor-panel .editor-buttons button {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+}
+
+
+/* ========================================
+   7. SMALL SCREEN ADJUSTMENTS
+   ======================================== */
+
+@media (max-width: 700px) {
+  .sidebar {
+    padding: 18px;
+  }
+
+  .path-editor-summary {
+    padding: 13px 15px;
+  }
+
+  .path-editor-panel > .path-editor {
+    padding: 14px;
+  }
+
+  .sidebar select {
+    background-position: right 12px center;
+  }
+}
