@@ -9,6 +9,13 @@ import { calculateRouteStats } from "./routeStats";
 import { getInsertIndex } from "./routeStops";
 
 import {
+  loadHazards,
+  avoidAreasFor,
+  type Hazard
+} from "./hazards";
+
+
+import {
   loadSavedRoutes,
   storeSavedRoutes,
   type SavedRoute,
@@ -71,6 +78,12 @@ function App() {
     useState<SavedRoute[]>(loadSavedRoutes);
 
   // ========================================
+  // REPORTED ISSUES
+  // ========================================
+
+  const [hazards] = useState<Hazard[]>(loadHazards);
+
+  // ========================================
   // FIND AUTOMATIC WALKING ROUTE
   // ========================================
 
@@ -82,7 +95,8 @@ function App() {
     quiet = false,
     from = start,
     to = destination,
-    avoid = avoidStairs
+    avoid = avoidStairs,
+    activeHazards = hazards
   ) {
     if (!from || !to) {
       setMessage(
@@ -117,11 +131,21 @@ function App() {
     setIsLoading(true);
 
     try {
+      const keepClear = [from, to].flatMap((id) => {
+        const building = buildings.find((b) => b.id === id);
+        return building ? [building.coordinates] : [];
+      });
+
+      const avoidAreas = avoid
+        ? avoidAreasFor(activeHazards, keepClear)
+        : [];
+
       const results = await findWalkingRoutes(
         from,
         to,
         avoid,
-        stops
+        stops,
+        avoidAreas
       );
 
       if (id !== requestId.current) return;
@@ -416,7 +440,7 @@ function App() {
             />
 
             <label htmlFor="avoidStairs">
-              Avoid stairs
+              Wheelchair Accessibility
             </label>
 
           </div>

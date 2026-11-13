@@ -21,7 +21,8 @@ export async function findWalkingRoutes(
   start: string,
   destination: string,
   avoidStairs: boolean,
-  waypoints: Coordinates[] = []
+  waypoints: Coordinates[] = [],
+  avoidAreas: number[][][] = []
 ): Promise<RouteResult[]> {
 
   const startBuilding = buildings.find(
@@ -59,18 +60,21 @@ export async function findWalkingRoutes(
       pedestrian: avoidStairs
         ? {
             type: "wheelchair",
-            step_penalty: 3000
+            step_penalty: 999999,
+            max_grade: 6,
+            use_hills: 0
           }
         : {}
     },
 
+    exclude_polygons: avoidAreas,
     format: "osrm",
     shape_format: "geojson",
     units: "km",
 
     // Ask for up to two additional routes
     // Alternates are only available for two-point routes
-    alternates: waypoints.length === 0 ? 2 : 0
+    alternates: waypoints.length === 0 ? 4 : 0
   };
 
   const url =

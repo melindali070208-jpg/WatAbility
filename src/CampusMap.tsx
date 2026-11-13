@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from "react";
 import * as maplibregl from "maplibre-gl";
 import type { Feature } from "geojson";
@@ -9,6 +8,7 @@ import workerUrl from
 import { buildings } from "./buildings";
 import type { RouteResult } from "./routes";
 import { calculateRouteStats } from "./routeStats";
+import { hazardLabel, type Hazard } from "./hazards";
 
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./CampusMap.css";
@@ -33,6 +33,10 @@ type CampusMapProps = {
   onAddStop: (point: Coordinates) => void;
   onInsertStop: (grabbedAt: Coordinates, dropped: Coordinates) => void;
   onMoveStop: (index: number, point: Coordinates) => void;
+  reporting?: boolean;
+  hazards?: Hazard[];
+  pendingReport?: Coordinates | null;
+  onPlaceReport?: (point: Coordinates) => void;
 };
 
 // Colours for alternative routes
@@ -149,8 +153,13 @@ function CampusMap({
   waypoints,
   onAddStop,
   onInsertStop,
-  onMoveStop
+  onMoveStop,
+  reporting = false,
+  hazards = [],
+  pendingReport = null,
+  onPlaceReport = () => {}
 }: CampusMapProps) {
+
 
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -164,6 +173,10 @@ function CampusMap({
   const insertStopRef = useRef(onInsertStop);
   const moveStopRef = useRef(onMoveStop);
   const markersRef = useRef<maplibregl.Marker[]>([]);
+  const hazardMarkersRef = useRef<maplibregl.Marker[]>([]);
+  const pendingMarkerRef = useRef<maplibregl.Marker | null>(null);
+  const reportingRef = useRef(reporting);
+  const placeReportRef = useRef(onPlaceReport);
   const selectRouteRef = useRef(onSelectRoute);
 
   routeRef.current = route;
@@ -173,6 +186,8 @@ function CampusMap({
   addStopRef.current = onAddStop;
   insertStopRef.current = onInsertStop;
   moveStopRef.current = onMoveStop;
+  reportingRef.current = reporting;
+  placeReportRef.current = onPlaceReport;
   selectRouteRef.current = onSelectRoute;
 
   // ========================================
@@ -548,13 +563,24 @@ function CampusMap({
     // ========================================
 
     map.on("click", (event) => {
+      // Clicking an existing issue marker should only open its popup
+      const target = event.originalEvent.target as HTMLElement;
+      if (target.closest(".hazard-marker")) return;
+
+      const point: Coordinates = [
+        round(event.lngLat.lng),
+        round(event.lngLat.lat)
+      ];
+
+      if (reportingRef.current) {
+        placeReportRef.current(point);
+        return;
+      }
+
       if (!editingRef.current) return;
       if (justDragged) return;
 
-      addStopRef.current([
-        round(event.lngLat.lng),
-        round(event.lngLat.lat)
-      ]);
+      addStopRef.current(point);
     });
 
     map.on("error", (event) => {
@@ -652,12 +678,76 @@ function CampusMap({
     });
   }, [waypoints, editingRoute]);
 
+  // ========================================
+  // REPORTED ISSUE MARKERS
+  // ========================================
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    hazardMarkersRef.current.forEach((marker) => marker.remove());
+
+    hazardMarkersRef.current = hazards.map((hazard) => {
+      const element = document.createElement("div");
+      element.className = "hazard-marker";
+      element.textContent = "⚠";
+
+      // Built with textContent because notes are typed by people
+      const box = document.createElement("div");
+
+      const title = document.createElement("strong");
+      title.textContent = hazardLabel(hazard.type);
+      box.appendChild(title);
+
+      if (hazard.note) {
+        const note = document.createElement("div");
+        note.textContent = hazard.note;
+        box.appendChild(note);
+      }
+
+      const date = document.createElement("div");
+      date.textContent =
+        "Reported " +
+        new Date(hazard.reportedAt).toLocaleDateString();
+      date.style.color = "#64748b";
+      date.style.fontSize = "11px";
+      box.appendChild(date);
+
+      return new maplibregl.Marker({ element })
+        .setLngLat(hazard.coordinates)
+        .setPopup(
+          new maplibregl.Popup({ offset: 18 }).setDOMContent(box)
+        )
+        .addTo(map);
+    });
+  }, [hazards]);
+
+  // The spot just clicked, before the report is submitted
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    pendingMarkerRef.current?.remove();
+    pendingMarkerRef.current = null;
+
+    if (!pendingReport) return;
+
+    const element = document.createElement("div");
+    element.className = "hazard-marker pending";
+    element.textContent = "?";
+
+    pendingMarkerRef.current = new maplibregl.Marker({ element })
+      .setLngLat(pendingReport)
+      .addTo(map);
+  }, [pendingReport]);
+
   return (
     <div
       ref={mapContainer}
       className="campus-map"
       style={{
-        cursor: editingRoute ? "crosshair" : "grab"
+        cursor: editingRoute || reporting ? "crosshair" : "grab"
       }}
     />
   );
