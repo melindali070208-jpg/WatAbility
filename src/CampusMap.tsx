@@ -37,6 +37,11 @@ type CampusMapProps = {
   hazards?: Hazard[];
   pendingReport?: Coordinates | null;
   onPlaceReport?: (point: Coordinates) => void;
+  onHazardFeedback?: (
+    hazardId: string,
+    feedback: "still_there" | "looks_fixed"
+  ) => Promise<void>;
+
 };
 
 // Colours for alternative routes
@@ -157,8 +162,10 @@ function CampusMap({
   reporting = false,
   hazards = [],
   pendingReport = null,
-  onPlaceReport = () => {}
-}: CampusMapProps) {
+  onPlaceReport = () => {},
+  onHazardFeedback = async () => {}
+  }: CampusMapProps) {
+
 
 
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -177,6 +184,7 @@ function CampusMap({
   const pendingMarkerRef = useRef<maplibregl.Marker | null>(null);
   const reportingRef = useRef(reporting);
   const placeReportRef = useRef(onPlaceReport);
+  const hazardFeedbackRef = useRef(onHazardFeedback);
   const selectRouteRef = useRef(onSelectRoute);
 
   routeRef.current = route;
@@ -188,6 +196,7 @@ function CampusMap({
   moveStopRef.current = onMoveStop;
   reportingRef.current = reporting;
   placeReportRef.current = onPlaceReport;
+  hazardFeedbackRef.current = onHazardFeedback;
   selectRouteRef.current = onSelectRoute;
 
   // ========================================
@@ -714,6 +723,82 @@ function CampusMap({
       date.style.fontSize = "11px";
       box.appendChild(date);
 
+      // ========================================
+      // COMMUNITY HAZARD FEEDBACK
+      // ========================================
+
+      const feedbackSection = document.createElement("div");
+      feedbackSection.className = "hazard-feedback";
+
+      const question = document.createElement("p");
+      question.textContent = "Is this issue still present?";
+
+      const buttonRow = document.createElement("div");
+      buttonRow.className = "hazard-feedback-buttons";
+
+      const stillThereButton = document.createElement("button");
+      stillThereButton.type = "button";
+      stillThereButton.textContent = "Still there";
+      stillThereButton.className = "hazard-still-button";
+
+      const fixedButton = document.createElement("button");
+      fixedButton.type = "button";
+      fixedButton.textContent = "Looks fixed";
+      fixedButton.className = "hazard-fixed-button";
+
+      const status = document.createElement("p");
+      status.className = "hazard-feedback-status";
+      status.setAttribute("role", "status");
+
+      async function sendFeedback(
+        feedback: "still_there" | "looks_fixed"
+      ) {
+        stillThereButton.disabled = true;
+        fixedButton.disabled = true;
+
+        status.textContent = "Submitting feedback...";
+
+        try {
+          await hazardFeedbackRef.current(
+            hazard.id,
+            feedback
+          );
+
+          status.textContent =
+            feedback === "looks_fixed"
+              ? "Thanks! A possible fix has been reported for review."
+              : "Thanks! Your confirmation was recorded.";
+
+        } catch (error) {
+          console.error("Hazard feedback failed:", error);
+
+          status.textContent =
+            "Could not submit feedback. Please try again.";
+
+          stillThereButton.disabled = false;
+          fixedButton.disabled = false;
+        }
+      }
+
+      stillThereButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        void sendFeedback("still_there");
+      });
+
+      fixedButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        void sendFeedback("looks_fixed");
+      });
+
+      buttonRow.appendChild(stillThereButton);
+      buttonRow.appendChild(fixedButton);
+
+      feedbackSection.appendChild(question);
+      feedbackSection.appendChild(buttonRow);
+      feedbackSection.appendChild(status);
+
+      box.appendChild(feedbackSection);
+
       return new maplibregl.Marker({ element })
         .setLngLat(hazard.coordinates)
         .setPopup(
@@ -733,9 +818,12 @@ function CampusMap({
 
     if (!pendingReport) return;
 
+    
     const element = document.createElement("div");
     element.className = "hazard-marker pending";
-    element.textContent = "?";
+    element.textContent = "⚠";
+    element.title = "Selected accessibility issue location";
+
 
     pendingMarkerRef.current = new maplibregl.Marker({ element })
       .setLngLat(pendingReport)

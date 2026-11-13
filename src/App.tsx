@@ -1,5 +1,5 @@
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import CampusMap from "./CampusMap";
 import { buildings } from "./buildings";
 import type { RouteResult } from "./routes";
@@ -8,12 +8,14 @@ import { calculateRouteStats } from "./routeStats";
 
 import { getInsertIndex } from "./routeStops";
 
-import {
-  loadHazards,
-  avoidAreasFor,
-  type Hazard
-} from "./hazards";
 
+import {
+  avoidAreasFor,
+  HAZARD_OPTIONS,
+  hazardLabel,
+  type Hazard,
+  type HazardType
+} from "./hazards";
 
 import {
   loadSavedRoutes,
@@ -23,6 +25,14 @@ import {
 } from "./savedRoutes";
 
 import "./App.css";
+
+import {
+  fetchSharedHazards,
+  submitSharedHazard,
+  submitHazardFeedback,
+  type HazardFeedback
+} from "./hazardDatabase";
+
 
 function App() {
   // ========================================
@@ -34,6 +44,8 @@ function App() {
   const [avoidStairs, setAvoidStairs] = useState(true);
 
   const [message, setMessage] = useState("");
+  const [showReportSuccess, setShowReportSuccess] =
+    useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const [selectedBuilding, setSelectedBuilding] =
@@ -81,7 +93,103 @@ function App() {
   // REPORTED ISSUES
   // ========================================
 
-  const [hazards] = useState<Hazard[]>(loadHazards);
+  const [hazards, setHazards] =
+  useState<Hazard[]>([]);
+  const [reporting, setReporting] = useState(false);
+
+  const [pendingReport, setPendingReport] =
+    useState<Coordinates | null>(null);
+
+  const [reportType, setReportType] =
+    useState<HazardType>("elevator");
+
+  const reportOptions = (
+    HAZARD_OPTIONS as readonly unknown[]
+  ).flatMap((item) => {
+    if (typeof item === "string") {
+      const value = item as HazardType;
+      return [{ value, label: hazardLabel(value) }];
+    }
+
+    if (!item || typeof item !== "object") {
+      return [];
+    }
+
+    const option = item as {
+      value?: HazardType;
+      type?: HazardType;
+      id?: HazardType;
+      label?: string;
+    };
+
+    const value = option.value ?? option.type ?? option.id;
+
+    return value
+      ? [{ value, label: option.label ?? hazardLabel(value) }]
+      : [];
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadReports() {
+      try {
+        const reports = await fetchSharedHazards();
+
+        if (!cancelled) {
+          setHazards(reports);
+        }
+      } catch (error) {
+        console.error("Could not load reports:", error);
+        if (!cancelled) {
+          setMessage(
+            "Could not load shared accessibility reports."
+          );
+        }
+      }
+    }
+
+    void loadReports();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  
+  async function submitHazard() {
+    if (!pendingReport) {
+      setMessage("Please select an issue location.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      await submitSharedHazard(
+        reportType,
+        pendingReport
+      );
+
+      const updatedReports = await fetchSharedHazards();
+
+      setHazards(updatedReports);
+
+      setPendingReport(null);
+      setReportType("elevator");
+      setReporting(false);
+      setShowReportSuccess(true);
+
+      
+    } catch (error) {
+      console.error("Report submission failed:", error);
+      setMessage("Unable to submit the report.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+
 
   // ========================================
   // FIND AUTOMATIC WALKING ROUTE
@@ -457,8 +565,6 @@ function App() {
               ? "Finding route..."
               : "Find Accessible Route"}
           </button>
-
-          {/* STATUS MESSAGE */}
           
           {/* ALTERNATIVE ROUTE OPTIONS */}
 
@@ -529,7 +635,7 @@ function App() {
              ===================================== */}
 
           <div className="path-editor">
-          <details className="path-editor-panel route-editor" open>
+          <details className="path-editor-panel route-editor">
             <summary className="path-editor-summary">
               <span>📍 Customize Your Route</span>
               <span className="path-editor-arrow">⌄</span>
@@ -545,8 +651,13 @@ function App() {
                 type="checkbox"
                 checked={editingRoute}
                 disabled={!route}
-                onChange={(e) => setEditingRoute(e.target.checked)}
-              />
+                onChange={(e) => {
+                  setEditingRoute(e.target.checked);
+                  if (e.target.checked) {
+                    setReporting(false);
+                    setPendingReport(null);
+                  }
+                }}              />
               Edit route on map
             </label>
 
@@ -639,6 +750,98 @@ function App() {
           </div>
 
           {/* =====================================
+                REPORT ACCESSIBILITY ISSUE
+              ===================================== */}
+
+            <div className="path-editor">
+              <details className="path-editor-panel">
+              <summary className="path-editor-summary">
+                <span>⚠️ Report an Accessibility Issue</span>
+                <span className="path-editor-arrow">⌄</span>
+              </summary>
+
+                <p>
+                  Help identify accessibility problems that
+                  may not appear in existing campus map data.
+                </p>
+
+                <label className="editor-toggle">
+                  <input
+                    type="checkbox"
+                    checked={reporting}
+                    onChange={(e) => {
+                      setReporting(e.target.checked);
+                      setEditingRoute(false);
+                      setPendingReport(null);
+                    }}
+                  />
+                  Select issue location on map
+                </label>
+
+                {reporting && (
+                  <p>
+                    Click the location of the accessibility
+                    issue on the campus map.
+                  </p>
+                )}
+
+                {pendingReport && (
+                  <div className="report-location">
+                    <p>Location selected!</p>
+                    <p>
+                      Longitude: {pendingReport[0].toFixed(5)}
+                    </p>
+                    <p>
+                      Latitude: {pendingReport[1].toFixed(5)}
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={() => setPendingReport(null)}
+                    >
+                      Choose a different location
+                    </button>
+                  </div>
+                )}
+
+                {/* ISSUE TYPE DROPDOWN */}
+
+                <label htmlFor="reportType">
+                  Type of accessibility issue
+                </label>
+
+                <select
+                  id="reportType"
+                  value={reportType}
+                  onChange={(e) =>
+                    setReportType(e.target.value as HazardType)
+                  }
+                >
+                  {reportOptions.map((option) => (
+                    <option
+                      key={option.value}
+                      value={option.value}
+                    >
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+
+                {/* SUBMIT REPORT BUTTON */}
+
+                <button
+                  type="button"
+                  className="report-submit-button"
+                  onClick={submitHazard}
+                  disabled={!pendingReport}
+                >
+                  Report
+                </button>
+
+              </details>
+            </div>
+
+          {/* =====================================
               SAVED ROUTES
              ===================================== */}
 
@@ -701,10 +904,55 @@ function App() {
 
           editingRoute={editingRoute}
           waypoints={waypoints}
+          
           onAddStop={addStop}
           onInsertStop={insertStop}
           onMoveStop={moveStop}
-        />
+
+          reporting={reporting}
+          hazards={hazards}
+          pendingReport={pendingReport}
+          onPlaceReport={(point) => {
+            setPendingReport(point);
+          }}
+
+          onHazardFeedback={async (hazardId, feedback: HazardFeedback) => {
+            await submitHazardFeedback(hazardId, feedback);
+          }}
+
+          />
+
+
+          {/* FLOATING REPORT SUCCESS NOTIFICATION */}
+
+          {showReportSuccess && (
+            <div
+              className="report-success-toast"
+              role="status"
+            >
+              <div className="report-success-icon">
+                ✓
+              </div>
+
+              <div className="report-success-content">
+                <strong>Report submitted!</strong>
+
+                <p>
+                  Your accessibility report has been saved.
+                  This information has not yet been verified.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="report-success-close"
+                aria-label="Dismiss report notification"
+                onClick={() => setShowReportSuccess(false)}
+              >
+                ×
+              </button>
+            </div>
+          )}
 
 
           {/* FLOATING ROUTE CARD */}

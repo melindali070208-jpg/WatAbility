@@ -327,7 +327,7 @@ body {
    ======================================== */
 
 .saved-paths {
-  margin-top: 20px;
+  margin-top: 14px;
   padding: 16px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
@@ -1391,4 +1391,248 @@ input[type="checkbox"] {
 
 .route-editor .path-name-input {
   margin-top: 10px;
+}
+
+/* Accessibility report location */
+
+.report-location {
+  margin-top: 14px;
+  padding: 14px;
+  background: #fff9ec;
+  border: 1px solid #e9dcc5;
+  border-radius: 12px;
+}
+
+.report-location p {
+  margin: 6px 0;
+  color: #d06fc2;
+  font-size: 13px;
+}
+
+.report-location button {
+  margin-top: 10px;
+  background: #d8c5df;
+  color: #d06fc2;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+/* Accessibility reporting button */
+
+.sidebar .report-submit-button {
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px;
+  background: #D8C5DF;
+  color: #403148;
+  border: none;
+  border-radius: 10px;
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sidebar .report-submit-button:hover:not(:disabled) {
+  background: #C8B0D3;
+}
+
+.sidebar .report-submit-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Matching dropdown headers */
+
+.path-editor-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  list-style: none;
+}
+
+/* Hide the browser's default arrow */
+.path-editor-summary::-webkit-details-marker {
+  display: none;
+}
+
+.path-editor-summary::marker {
+  content: "";
+}
+
+/* Custom dropdown arrow */
+.path-editor-arrow {
+  font-size: 22px;
+  font-weight: 600;
+  color: #8F799B;
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+/* Rotate the arrow when expanded */
+.path-editor-panel[open] .path-editor-arrow {
+  transform: rotate(180deg);
+}
+
+/* Center dropdown headings and arrows */
+
+.path-editor-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 24px;
+  padding: 14px 16px;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+
+.path-editor-summary > span:first-child {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.path-editor-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+  line-height: 1;
+  color: #8F799B;
+  transition: transform 0.2s ease;
+}
+
+.path-editor-panel[open] .path-editor-arrow {
+  transform: rotate(180deg);
+}
+
+/* Make Saved Routes match the other sidebar panels */
+
+.sidebar .saved-paths {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding: 14px 16px;
+  background: #FFFEFB;
+  border: 1px solid #E8DCE8;
+  border-radius: 12px;
+}
+
+.sidebar .saved-paths h3 {
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: #514650;
+}
+
+.sidebar .saved-paths > p {
+  margin: 8px 0 0;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.sidebar .saved-paths .saved-path {
+  margin-top: 10px;
+}
+
+/* Consistent spacing between sidebar sections */
+
+.sidebar > .path-editor,
+.sidebar > .saved-paths {
+  margin-top: 14px;
+  margin-bottom: 0;
+}
+
+.sidebar > .path-editor {
+  padding: 0;
+}
+
+.sidebar .path-editor-panel {
+  margin: 0;
+}
+
+/* Floating accessibility report notification */
+
+.map-area {
+  position: relative;
+}
+
+.report-success-toast {
+  position: absolute;
+  bottom: 24px;
+  left: 20px;
+  z-index: 20;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  width: min(320px, calc(100% - 40px));
+  box-sizing: border-box;
+  padding: 16px;
+
+  background: #FFFEFB;
+  border: 1px solid #D9E6D4;
+  border-radius: 14px;
+  box-shadow: 0 5px 20px rgba(70, 58, 70, 0.16);
+
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.report-success-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+
+  background: #DCE9D6;
+  color: #45684B;
+  font-weight: 700;
+}
+
+.report-success-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.report-success-content strong {
+  display: block;
+  color: #405945;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.report-success-content p {
+  margin: 0;
+  color: #514650;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.report-success-close {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: #857B87;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.report-success-close:hover {
+  color: #514650;
 }

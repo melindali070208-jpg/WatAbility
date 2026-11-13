@@ -53,3 +53,110 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
   pointer-events: none;
 }
+
+/* Selected accessibility issue location */
+
+.hazard-marker.pending {
+  width: 22px;
+  height: 22px;
+  background: #ffcb49;
+  color: #000000;
+  border: 1px solid #0000006e;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 11px;
+  font-weight: 500;
+
+  box-shadow: 0 3px 12px rgba(50, 30, 40, 0.4);
+  cursor: crosshair;
+
+  z-index: 10;
+}
+
+/* Community hazard feedback popup */
+
+.hazard-feedback {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #E8DCE8;
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.hazard-feedback > p:first-child {
+  margin: 0 0 10px;
+  color: #514650;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.hazard-feedback-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.hazard-feedback-buttons button {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hazard-still-button {
+  background: #DDE9D8;
+  color: #405B43;
+}
+
+.hazard-fixed-button {
+  background: #E7D4EC;
+  color: #594262;
+}
+
+.hazard-feedback-buttons button:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
+
+.hazard-feedback-buttons button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.hazard-feedback-status {
+  margin: 9px 0 0;
+  color: #5D735D;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* All accessibility hazard markers */
+
+.hazard-marker,
+.hazard-marker.pending {
+  width: 22px;
+  height: 22px;
+
+  background: #ff4a8a;
+  color: #000000;
+
+  border: 1px solid #000000;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+  font-size: 11px;
+  font-weight: 500;
+
+  box-shadow: 0 3px 12px rgba(50, 30, 40, 0.4);
+  cursor: pointer;
+}
