@@ -1,6 +1,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import CampusMap from "./CampusMap";
+import AdminDashboard from "./AdminDashboard";
 import { buildings } from "./buildings";
 import type { RouteResult } from "./routes";
 import { findWalkingRoutes } from "./pedestrianRouting";
@@ -34,7 +35,7 @@ import {
 } from "./hazardDatabase";
 
 
-function App() {
+function CampusApp() {
   // ========================================
   // ROUTE SELECTION
   // ========================================
@@ -922,7 +923,6 @@ function App() {
 
           />
 
-
           {/* FLOATING REPORT SUCCESS NOTIFICATION */}
 
           {showReportSuccess && (
@@ -1046,7 +1046,17 @@ function App() {
 
     </div>
   );
+
+}
+
+function App() {
+  const path = window.location.pathname.replace(/\/+$/, "");
+
+  if (path === "/admin") {
+    return <AdminDashboard />;
+  }
+
+  return <CampusApp />;
 }
 
 export default App;
-
